@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientNou = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     numeComplet: "",
     cnp: "",
@@ -15,6 +18,7 @@ const ClientNou = () => {
     telefon: "",
     email: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -23,9 +27,49 @@ const ClientNou = () => {
     }));
   };
 
-  const handleSave = () => {
-    console.log("Salvare client:", formData);
-    // Here you would typically save to a database
+  const handleSave = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .insert([
+          {
+            nume_complet: formData.numeComplet,
+            cnp: formData.cnp,
+            nr_carte_identitate: formData.nrCarteIdentitate,
+            permis_conducere: formData.permisConducere,
+            telefon: formData.telefon,
+            email: formData.email,
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Client salvat cu succes!",
+        description: "Clientul a fost adăugat în baza de date.",
+      });
+
+      // Reset form
+      setFormData({
+        numeComplet: "",
+        cnp: "",
+        nrCarteIdentitate: "",
+        permisConducere: "",
+        telefon: "",
+        email: "",
+      });
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut salva clientul. Încercați din nou.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -107,9 +151,10 @@ const ClientNou = () => {
 
               <Button 
                 onClick={handleSave}
+                disabled={isLoading}
                 className="w-full bg-blue-700 hover:bg-blue-800 text-white"
               >
-                Salvare Client
+                {isLoading ? "Se salvează..." : "Salvare Client"}
               </Button>
             </div>
           </div>
