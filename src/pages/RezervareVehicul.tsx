@@ -8,23 +8,125 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, FileText } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Client {
+  id: string;
+  nume_complet: string;
+}
+
+interface Vehicle {
+  id: string;
+  marca: string;
+  model: string;
+  numar_inmatriculare: string;
+}
 
 const RezervareVehicul = () => {
+  const { toast } = useToast();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [observatii, setObservatii] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleReservation = () => {
-    console.log("Înregistrare rezervare:", {
-      client: selectedClient,
-      vehicle: selectedVehicle,
-      startDate,
-      endDate
-    });
+  useEffect(() => {
+    fetchClients();
+    fetchVehicles();
+  }, []);
+
+  const fetchClients = async () => {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, nume_complet')
+      .order('nume_complet');
+    
+    if (error) {
+      console.error('Error fetching clients:', error);
+    } else {
+      setClients(data || []);
+    }
+  };
+
+  const fetchVehicles = async () => {
+    const { data, error } = await supabase
+      .from('vehicles')
+      .select('id, marca, model, numar_inmatriculare')
+      .eq('status', 'disponibil')
+      .order('marca');
+    
+    if (error) {
+      console.error('Error fetching vehicles:', error);
+    } else {
+      setVehicles(data || []);
+    }
+  };
+
+  const handleReservation = async () => {
+    if (!selectedClient || !selectedVehicle || !startDate || !endDate) {
+      toast({
+        title: "Eroare",
+        description: "Toate câmpurile sunt obligatorii.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('reservations')
+        .insert([
+          {
+            client_id: selectedClient,
+            vehicle_id: selectedVehicle,
+            data_inceput: format(startDate, 'yyyy-MM-dd'),
+            data_sfarsit: format(endDate, 'yyyy-MM-dd'),
+            observatii: observatii || null,
+            status: 'activa'
+          }
+        ]);
+
+      if (error) throw error;
+
+      // Update vehicle status to "inchiriat"
+      await supabase
+        .from('vehicles')
+        .update({ status: 'inchiriat' })
+        .eq('id', selectedVehicle);
+
+      toast({
+        title: "Rezervare creată cu succes!",
+        description: "Rezervarea a fost înregistrată în sistem.",
+      });
+
+      // Reset form
+      setSelectedClient("");
+      setSelectedVehicle("");
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setObservatii("");
+      
+      // Refresh vehicles list
+      fetchVehicles();
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut crea rezervarea. Încercați din nou.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -49,9 +151,11 @@ const RezervareVehicul = () => {
                     <SelectValue placeholder="Selectează clientul" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="client1">Popescu Tudor</SelectItem>
-                    <SelectItem value="client2">Marinescu Ion</SelectItem>
-                    <SelectItem value="client3">Georgescu Ana</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.nume_complet}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -63,9 +167,11 @@ const RezervareVehicul = () => {
                     <SelectValue placeholder="Selectează vehiculul" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="car1">BMW X5 - B123ABC</SelectItem>
-                    <SelectItem value="car2">Audi A4 - B456DEF</SelectItem>
-                    <SelectItem value="car3">Mercedes C-Class - B789GHI</SelectItem>
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.marca} {vehicle.model} - {vehicle.numar_inmatriculare}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -128,31 +234,32 @@ const RezervareVehicul = () => {
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-gray-600">Asigurarea CASCO</Label>
-                  <Input className="mt-1" placeholder="Detalii asigurare" />
+                  <Label className="text-gray-600">Observații</Label>
+                  <Input 
+                    className="mt-1" 
+                    placeholder="Observații despre rezervare"
+                    value={observatii}
+                    onChange={(e) => setObservatii(e.target.value)}
+                  />
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-blue-700" />
-                  <span className="text-blue-700 cursor-pointer">Atașare document</span>
+                  <span className="text-blue-700 cursor-pointer">Asigurarea CASCO</span>
                 </div>
 
-                <div>
-                  <Label className="text-gray-600">Fișă stare vehicul</Label>
-                  <Input className="mt-1" placeholder="Observații stare vehicul" />
-                </div>
-                
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-blue-700" />
-                  <span className="text-blue-700 cursor-pointer">Fișă stare completată</span>
+                  <span className="text-blue-700 cursor-pointer">Fișă stare vehicul</span>
                 </div>
               </div>
 
               <Button 
                 onClick={handleReservation}
+                disabled={isLoading}
                 className="w-full bg-blue-700 hover:bg-blue-800 text-white"
               >
-                Înregistrează rezervare
+                {isLoading ? "Se procesează..." : "Înregistrează rezervare"}
               </Button>
             </div>
           </div>

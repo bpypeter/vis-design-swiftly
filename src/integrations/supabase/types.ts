@@ -9,7 +9,146 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          cnp: string
+          created_at: string | null
+          email: string
+          id: string
+          nr_carte_identitate: string
+          nume_complet: string
+          permis_conducere: string
+          telefon: string
+        }
+        Insert: {
+          cnp: string
+          created_at?: string | null
+          email: string
+          id?: string
+          nr_carte_identitate: string
+          nume_complet: string
+          permis_conducere: string
+          telefon: string
+        }
+        Update: {
+          cnp?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          nr_carte_identitate?: string
+          nume_complet?: string
+          permis_conducere?: string
+          telefon?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          data_inceput: string
+          data_sfarsit: string
+          id: string
+          observatii: string | null
+          status: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          data_inceput: string
+          data_sfarsit: string
+          id?: string
+          observatii?: string | null
+          status?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          data_inceput?: string
+          data_sfarsit?: string
+          id?: string
+          observatii?: string | null
+          status?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          reservation_id: string | null
+          status: string | null
+          suma: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reservation_id?: string | null
+          status?: string | null
+          suma: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reservation_id?: string | null
+          status?: string | null
+          suma?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          created_at: string | null
+          id: string
+          marca: string
+          model: string
+          numar_inmatriculare: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          marca: string
+          model: string
+          numar_inmatriculare: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          marca?: string
+          model?: string
+          numar_inmatriculare?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

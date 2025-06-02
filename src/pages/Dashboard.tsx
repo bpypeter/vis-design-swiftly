@@ -3,11 +3,61 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { User, Calendar, FileText, CreditCard, Car, Minus } from "lucide-react";
+import { User, Calendar, FileText, CreditCard, Car, Minus, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    activeReservations: 0,
+    availableVehicles: 0,
+    totalRevenue: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Count clients
+      const { count: clientsCount } = await supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true });
+
+      // Count active reservations
+      const { count: reservationsCount } = await supabase
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'activa');
+
+      // Count available vehicles
+      const { count: vehiclesCount } = await supabase
+        .from('vehicles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'disponibil');
+
+      // Calculate total revenue
+      const { data: revenueData } = await supabase
+        .from('transactions')
+        .select('suma')
+        .eq('status', 'platit');
+
+      const totalRevenue = revenueData?.reduce((sum, transaction) => sum + Number(transaction.suma), 0) || 0;
+
+      setStats({
+        totalClients: clientsCount || 0,
+        activeReservations: reservationsCount || 0,
+        availableVehicles: vehiclesCount || 0,
+        totalRevenue
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const actions = [
     {
@@ -53,10 +103,55 @@ const Dashboard = () => {
           
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Bun venit, [Nume utilizator]
+              Bun venit în AUTONOM
             </h1>
+            <p className="text-gray-600">Sistemul de management pentru închirieri auto</p>
           </div>
 
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6 bg-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Clienți</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalClients}</p>
+                </div>
+                <User className="w-8 h-8 text-blue-700" />
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Rezervări Active</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeReservations}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-blue-700" />
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Vehicule Disponibile</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.availableVehicles}</p>
+                </div>
+                <Car className="w-8 h-8 text-blue-700" />
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Venituri Totale</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalRevenue} RON</p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-blue-700" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {actions.map((action, index) => (
               <Card 

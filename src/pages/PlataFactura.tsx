@@ -1,12 +1,79 @@
 
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Transaction {
+  id: string;
+  suma: number;
+  status: string;
+  reservations: {
+    clients: {
+      nume_complet: string;
+    };
+    vehicles: {
+      marca: string;
+      model: string;
+    };
+  };
+}
 
 const PlataFactura = () => {
-  const transactions = [
-    { amount: "350 RON", client: "Popescu Tudor", status: "Plătit", statusColor: "text-green-600" },
-    { amount: "250 RON", client: "Marinescu Ion", status: "Neplătit", statusColor: "text-red-600" },
-  ];
+  const { toast } = useToast();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        id,
+        suma,
+        status,
+        reservations (
+          clients (nume_complet),
+          vehicles (marca, model)
+        )
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching transactions:', error);
+    } else {
+      setTransactions(data || []);
+    }
+  };
+
+  const handlePayment = async (transactionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .update({ status: 'platit' })
+        .eq('id', transactionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Plată înregistrată cu succes!",
+        description: "Statusul tranzacției a fost actualizat.",
+      });
+
+      fetchTransactions();
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      toast({
+        title: "Eroare",
+        description: "Nu s-a putut actualiza plata.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -26,18 +93,38 @@ const PlataFactura = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Tranzacție</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Sumă</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Client</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Vehicul</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Stare</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Acțiuni</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {transactions.map((transaction, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{transaction.amount}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{transaction.client}</td>
-                      <td className={`px-6 py-4 text-sm font-medium ${transaction.statusColor}`}>
-                        {transaction.status}
+                  {transactions.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{transaction.suma} RON</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {transaction.reservations?.clients?.nume_complet || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {transaction.reservations?.vehicles?.marca} {transaction.reservations?.vehicles?.model}
+                      </td>
+                      <td className={`px-6 py-4 text-sm font-medium ${
+                        transaction.status === 'platit' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.status === 'platit' ? 'Plătit' : 'Neplătit'}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {transaction.status === 'neplatit' && (
+                          <Button 
+                            onClick={() => handlePayment(transaction.id)}
+                            size="sm"
+                            className="bg-blue-700 hover:bg-blue-800"
+                          >
+                            Marchează ca plătit
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}
