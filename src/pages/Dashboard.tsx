@@ -84,7 +84,7 @@ const Dashboard = () => {
       action: () => navigate("/rezervare-vehicul"),
     },
     {
-      title: "Generează contract",
+      title: "Documente",
       icon: FileText,
       action: () => navigate("/documente"),
     },

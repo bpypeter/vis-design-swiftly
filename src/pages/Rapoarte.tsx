@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Calendar, TrendingUp, Users } from 'lucide-react';
 import AuthGuard from "@/components/AuthGuard";
 
 interface Client {
@@ -22,6 +23,7 @@ interface ChartData {
 const Rapoarte = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState("");
+  const [selectedSection, setSelectedSection] = useState<'overview' | 'rentals' | 'revenue' | 'clients'>('overview');
   const [rentalsMonthData, setRentalsMonthData] = useState<ChartData[]>([]);
   const [rentalsYearData, setRentalsYearData] = useState<ChartData[]>([]);
   const [revenueMonthData, setRevenueMonthData] = useState<ChartData[]>([]);
@@ -190,6 +192,208 @@ const Rapoarte = () => {
     );
   };
 
+  const renderOverview = () => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card 
+        className="p-8 bg-white hover:shadow-lg transition-shadow cursor-pointer"
+        onClick={() => setSelectedSection('rentals')}
+      >
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="w-16 h-16 bg-blue-700 rounded-full flex items-center justify-center">
+            <Calendar className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">Închirieri vehicule</h3>
+          <p className="text-gray-600">Vizualizează statistici închirieri</p>
+        </div>
+      </Card>
+
+      <Card 
+        className="p-8 bg-white hover:shadow-lg transition-shadow cursor-pointer"
+        onClick={() => setSelectedSection('revenue')}
+      >
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center">
+            <TrendingUp className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">Venituri</h3>
+          <p className="text-gray-600">Analizează veniturile pe perioade</p>
+        </div>
+      </Card>
+
+      <Card 
+        className="p-8 bg-white hover:shadow-lg transition-shadow cursor-pointer"
+        onClick={() => setSelectedSection('clients')}
+      >
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
+            <Users className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">Clienți</h3>
+          <p className="text-gray-600">Urmărește numărul de clienți noi</p>
+        </div>
+      </Card>
+    </div>
+  );
+
+  const renderRentalsSection = () => (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Închirieri vehicule</h2>
+        <button 
+          onClick={() => setSelectedSection('overview')}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          ← Înapoi
+        </button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe lună (ultimele 12 luni)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={rentalsMonthData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#1d4ed8" name="Închirieri" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe an (ultimii 5 ani)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={rentalsYearData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#1d4ed8" name="Închirieri" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const renderRevenueSection = () => (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Venituri</h2>
+        <button 
+          onClick={() => setSelectedSection('overview')}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          ← Înapoi
+        </button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe lună (RON)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={revenueMonthData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#059669" name="Venituri (RON)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe an (RON)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={revenueYearData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#059669" name="Venituri (RON)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-medium mb-4">Venituri pe client</h3>
+        <div className="mb-4">
+          <Label className="text-gray-600">Selectează client</Label>
+          <Select value={selectedClient} onValueChange={setSelectedClient}>
+            <SelectTrigger className="mt-1 max-w-md">
+              <SelectValue placeholder="Selectează client pentru analiză" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toți clienții</SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.nume_complet}>
+                  {client.nume_complet}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {selectedClient && (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={revenueByClientData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#dc2626" name="Venituri (RON)" />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </Card>
+  );
+
+  const renderClientsSection = () => (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Clienți noi</h2>
+        <button 
+          onClick={() => setSelectedSection('overview')}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          ← Înapoi
+        </button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe lună (ultimele 12 luni)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={clientsMonthData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#7c3aed" name="Clienți noi" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div>
+          <h3 className="text-lg font-medium mb-2">Pe an (ultimii 5 ani)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={clientsYearData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" fill="#7c3aed" name="Clienți noi" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <AuthGuard>
       <div className="flex min-h-screen w-full">
@@ -205,137 +409,10 @@ const Rapoarte = () => {
             </div>
 
             <div className="space-y-8">
-              {/* Închirieri vehicule */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Închirieri vehicule</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe lună (ultimele 12 luni)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={rentalsMonthData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#1d4ed8" name="Închirieri" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe an (ultimii 5 ani)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={rentalsYearData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#1d4ed8" name="Închirieri" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Venituri */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Venituri</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe lună (RON)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={revenueMonthData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#059669" name="Venituri (RON)" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe an (RON)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={revenueYearData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#059669" name="Venituri (RON)" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium mb-4">Venituri pe client</h3>
-                  <div className="mb-4">
-                    <Label className="text-gray-600">Selectează client</Label>
-                    <Select value={selectedClient} onValueChange={setSelectedClient}>
-                      <SelectTrigger className="mt-1 max-w-md">
-                        <SelectValue placeholder="Selectează client pentru analiză" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Toți clienții</SelectItem>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.nume_complet}>
-                            {client.nume_complet}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {selectedClient && (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={revenueByClientData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" angle={-45} textAnchor="end" height={80} />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#dc2626" name="Venituri (RON)" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </Card>
-
-              {/* Clienți */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Clienți noi</h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe lună (ultimele 12 luni)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={clientsMonthData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#7c3aed" name="Clienți noi" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Pe an (ultimii 5 ani)</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={clientsYearData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="period" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#7c3aed" name="Clienți noi" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </Card>
+              {selectedSection === 'overview' && renderOverview()}
+              {selectedSection === 'rentals' && renderRentalsSection()}
+              {selectedSection === 'revenue' && renderRevenueSection()}
+              {selectedSection === 'clients' && renderClientsSection()}
             </div>
           </div>
         </main>
