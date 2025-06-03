@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthGuard from "@/components/AuthGuard";
 import { useToast } from "@/hooks/use-toast";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -112,14 +113,17 @@ const Dashboard = () => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <SidebarTrigger />
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="flex items-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Deconectare</span>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <NotificationCenter />
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Deconectare</span>
+                </Button>
+              </div>
             </div>
             
             <div className="mb-8">
