@@ -42,7 +42,8 @@ const PlataFactura = () => {
           vehicles (marca, model)
         )
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(20); // Show more transactions for variety
     
     if (error) {
       console.error('Error fetching transactions:', error);
@@ -105,7 +106,7 @@ const PlataFactura = () => {
                   <tbody className="divide-y divide-gray-200">
                     {transactions.map((transaction) => (
                       <tr key={transaction.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900">{transaction.suma} RON</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{Math.round(transaction.suma)} RON</td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {transaction.reservations?.clients?.nume_complet || 'N/A'}
                         </td>

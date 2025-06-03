@@ -1,4 +1,3 @@
-
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,7 @@ const Dashboard = () => {
         totalClients: clientsCount || 0,
         activeReservations: reservationsCount || 0,
         availableVehicles: vehiclesCount || 0,
-        totalRevenue
+        totalRevenue: Math.round(totalRevenue) // Remove decimals
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
