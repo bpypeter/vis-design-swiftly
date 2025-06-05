@@ -60,6 +60,11 @@ const App = () => (
                 <Rapoarte />
               </SidebarProvider>
             } />
+            <Route path="/gestionare-vehicule" element={
+              <SidebarProvider>
+                <GestionareVehicule />
+              </SidebarProvider>
+            } />
           </Routes>
         </div>
       </BrowserRouter>
