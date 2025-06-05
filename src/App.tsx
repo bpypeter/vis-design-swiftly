@@ -12,6 +12,7 @@ import Documente from "./pages/Documente";
 import ReturnareVehicul from "./pages/ReturnareVehicul";
 import PlataFactura from "./pages/PlataFactura";
 import Rapoarte from "./pages/Rapoarte";
+import GestionareVehicule from "./pages/GestionareVehicule";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 const queryClient = new QueryClient();

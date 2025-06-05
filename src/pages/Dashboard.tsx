@@ -1,4 +1,3 @@
-
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthGuard from "@/components/AuthGuard";
 import { useToast } from "@/hooks/use-toast";
-import { NotificationCenter } from "@/components/NotificationCenter";
+import NotificationCenter from "@/components/NotificationCenter";
 import DashboardStats from "@/components/DashboardStats";
 import DashboardCharts from "@/components/DashboardCharts";
 

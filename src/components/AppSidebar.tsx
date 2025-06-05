@@ -7,7 +7,8 @@ import {
   Car,
   CarIcon as Return,
   CreditCard,
-  BarChart3
+  BarChart3,
+  Settings
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,11 @@ const menuItems = [
     title: "Rezervare vehicul",
     url: "/rezervare-vehicul",
     icon: Calendar,
+  },
+  {
+    title: "Gestionare vehicule",
+    url: "/gestionare-vehicule",
+    icon: Settings,
   },
   {
     title: "Documente",
