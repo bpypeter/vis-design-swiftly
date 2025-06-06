@@ -32,33 +32,36 @@ export type Database = {
       }
       clients: {
         Row: {
-          cnp: string
+          cnp: string | null
           created_at: string | null
           email: string
           id: string
-          nr_carte_identitate: string
+          nr_carte_identitate: string | null
           nume_complet: string
           permis_conducere: string
+          serie_nr_pasaport: string | null
           telefon: string
         }
         Insert: {
-          cnp: string
+          cnp?: string | null
           created_at?: string | null
           email: string
           id?: string
-          nr_carte_identitate: string
+          nr_carte_identitate?: string | null
           nume_complet: string
           permis_conducere: string
+          serie_nr_pasaport?: string | null
           telefon: string
         }
         Update: {
-          cnp?: string
+          cnp?: string | null
           created_at?: string | null
           email?: string
           id?: string
-          nr_carte_identitate?: string
+          nr_carte_identitate?: string | null
           nume_complet?: string
           permis_conducere?: string
+          serie_nr_pasaport?: string | null
           telefon?: string
         }
         Relationships: []
