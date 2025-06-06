@@ -1,3 +1,4 @@
+
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -178,7 +179,7 @@ const Dashboard = () => {
       action: () => navigate("/client-nou"),
     },
     {
-      title: "Înregistrează rezervare",
+      title: "Rezervare vehicul",
       icon: Calendar,
       action: () => navigate("/rezervare-vehicul"),
     },
@@ -188,12 +189,12 @@ const Dashboard = () => {
       action: () => navigate("/documente"),
     },
     {
-      title: "Efectuare plată",
+      title: "Plată & Factură",
       icon: CreditCard,
       action: () => navigate("/plata-factura"),
     },
     {
-      title: "Preia vehicul",
+      title: "Rezervare vehicul",
       icon: Car,
       action: () => navigate("/rezervare-vehicul"),
     },

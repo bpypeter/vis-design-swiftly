@@ -9,11 +9,14 @@ import AuthGuard from "@/components/AuthGuard";
 import SearchFilter from "@/components/SearchFilter";
 import ExportButton from "@/components/ExportButton";
 import NotificationCenter from "@/components/NotificationCenter";
+import InvoiceModal from "@/components/InvoiceModal";
+import { FileText } from "lucide-react";
 
 interface Transaction {
   id: string;
   suma: number;
   status: string;
+  created_at: string;
   reservations: {
     clients: {
       nume_complet: string;
@@ -22,6 +25,8 @@ interface Transaction {
       marca: string;
       model: string;
     };
+    data_inceput: string;
+    data_sfarsit: string;
   };
 }
 
@@ -29,6 +34,8 @@ const PlataFactura = () => {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
@@ -41,9 +48,12 @@ const PlataFactura = () => {
         id,
         suma,
         status,
+        created_at,
         reservations (
           clients (nume_complet),
-          vehicles (marca, model)
+          vehicles (marca, model),
+          data_inceput,
+          data_sfarsit
         )
       `)
       .order('created_at', { ascending: false })
@@ -80,6 +90,11 @@ const PlataFactura = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleViewInvoice = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsInvoiceModalOpen(true);
   };
 
   const handleSearch = (query: string) => {
@@ -180,15 +195,26 @@ const PlataFactura = () => {
                           {transaction.status === 'platit' ? 'Plătit' : 'Neplătit'}
                         </td>
                         <td className="px-6 py-4 text-sm">
-                          {transaction.status === 'neplatit' && (
+                          <div className="flex space-x-2">
+                            {transaction.status === 'neplatit' && (
+                              <Button 
+                                onClick={() => handlePayment(transaction.id)}
+                                size="sm"
+                                className="bg-blue-700 hover:bg-blue-800"
+                              >
+                                Marchează ca plătit
+                              </Button>
+                            )}
                             <Button 
-                              onClick={() => handlePayment(transaction.id)}
+                              onClick={() => handleViewInvoice(transaction)}
+                              variant="outline"
                               size="sm"
-                              className="bg-blue-700 hover:bg-blue-800"
+                              className="flex items-center space-x-1"
                             >
-                              Marchează ca plătit
+                              <FileText className="w-4 h-4" />
+                              <span>Factură</span>
                             </Button>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -199,6 +225,12 @@ const PlataFactura = () => {
           </div>
         </main>
       </div>
+
+      <InvoiceModal 
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        transaction={selectedTransaction}
+      />
     </AuthGuard>
   );
 };
